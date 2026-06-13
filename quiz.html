@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guess That Childhood Memory — Singapore</title>
+<style>
+  :root{
+    --navy:#1B325C; --cream:#FDF6E3; --red:#C0392B;
+    --green:#27824A; --gold:#E5A12A; --dark:#222;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; font-family:"Helvetica Neue",Arial,sans-serif;
+    background:var(--navy); color:var(--dark);
+    height:100vh; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center;
+    padding:1.2vh 10px; gap:1vh;
+  }
+  header{
+    width:100%; text-align:center; color:var(--cream); flex:0 0 auto;
+  }
+  header h1{margin:0; font-size:clamp(20px,3.4vh,30px); color:var(--gold);}
+  header p{margin:2px 0 0; font-size:clamp(13px,2vh,18px); opacity:.85;}
+  .progress{color:var(--cream); font-size:clamp(13px,2vh,18px); margin:2px 0 0; opacity:.8;}
+
+  .card{
+    background:var(--cream); border-radius:22px;
+    width:min(860px,94vw); padding:2vh 22px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+    display:flex; flex-direction:column; align-items:center;
+    flex:1 1 auto; min-height:0; overflow:hidden;
+  }
+  .imgwrap{
+    width:100%; flex:1 1 auto; min-height:0; background:#000;
+    border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center;
+  }
+  .imgwrap img{width:100%; height:100%; object-fit:contain;}
+
+  .nameplate{
+    margin:1.2vh 0 0; font-size:clamp(24px,4.4vh,36px); font-weight:800; text-align:center;
+    color:var(--navy); flex:0 0 auto; line-height:1.1;
+  }
+  .nameplate.hidden{visibility:hidden;}
+
+  .choices{
+    display:grid; grid-template-columns:1fr 1fr; gap:1.1vh 14px; width:100%;
+    margin-top:1.2vh; flex:0 0 auto;
+  }
+  .choice{
+    font-size:clamp(16px,2.6vh,22px); font-weight:700; padding:1.4vh 14px; border-radius:14px;
+    border:3px solid var(--navy); background:#fff; color:var(--navy);
+    cursor:pointer; text-align:center; transition:transform .05s ease;
+  }
+  .choice:hover{transform:translateY(-2px);}
+  .choice .letter{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:clamp(26px,3.4vh,34px); height:clamp(26px,3.4vh,34px); border-radius:50%;
+    background:var(--navy); color:#fff; font-size:clamp(14px,2.2vh,18px);
+    margin-right:8px; vertical-align:middle;
+  }
+  .choice.correct{background:var(--green); color:#fff; border-color:var(--green);}
+  .choice.correct .letter{background:#fff; color:var(--green);}
+  .choice.wrong{background:var(--red); color:#fff; border-color:var(--red); opacity:.85;}
+  .choice.wrong .letter{background:#fff; color:var(--red);}
+  .choice[disabled]{cursor:default;}
+
+  .nav{display:flex; gap:14px; flex:0 0 auto; align-items:center;}
+  .btn{
+    font-size:clamp(15px,2.4vh,20px); font-weight:700; padding:1.2vh 26px; border-radius:40px;
+    border:none; cursor:pointer; background:var(--gold); color:var(--navy);
+  }
+  .btn.secondary{background:transparent; color:var(--cream); border:2px solid var(--cream);}
+  .hint{color:var(--cream); font-size:clamp(11px,1.7vh,14px); opacity:.6; flex:0 0 auto; text-align:center;}
+  .credit{font-size:clamp(10px,1.5vh,13px); opacity:.45; margin-top:.6vh; flex:0 0 auto;}
+
+  /* ---- Mobile / portrait ---- */
+  @media (max-width:680px), (orientation:portrait){
+    body{padding:8px 8px env(safe-area-inset-bottom) 8px; gap:8px;}
+    .card{width:100%; padding:12px; border-radius:16px;}
+    .choices{grid-template-columns:1fr 1fr; gap:8px;}
+    .choice{padding:12px 8px; border-width:2px;}
+    .nameplate{margin-top:8px;}
+    .btn{padding:12px 22px;}
+    /* fingers, not keys, on phones — hide the keyboard hint */
+    .hint{display:none;}
+  }
+  @media (max-width:430px){
+    .choices{grid-template-columns:1fr;}  /* single column on small phones */
+    header p{display:none;}
+  }
+  /* prevent iOS double-tap zoom flicker on buttons */
+  .choice,.btn{touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
+</style>
+</head>
+<body>
+  <header>
+    <h1 id="title">Guess That Childhood Memory</h1>
+    <p id="subtitle"></p>
+    <div class="progress" id="progress"></div>
+  </header>
+
+  <div class="card">
+    <div class="imgwrap"><img id="photo" alt=""></div>
+    <div class="nameplate hidden" id="nameplate"></div>
+    <div class="choices" id="choices"></div>
+    <div class="credit" id="credit"></div>
+  </div>
+
+  <div class="nav">
+    <a class="btn secondary" href="index.html">⌂ Menu</a>
+    <button class="btn secondary" id="prevBtn">‹ Back</button>
+    <button class="btn" id="nextBtn">Next ›</button>
+  </div>
+  <div class="hint">Tap a choice, or press A·B·C·D &nbsp;•&nbsp; ← → or Space to move</div>
+
+<script src="data.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  const quizKey = params.get("quiz") || "hawkers";
+  const quiz = window.QUIZZES[quizKey];
+  let idx = 0, answered = false;
+
+  const LETTERS = ["A","B","C","D"];
+  const $ = id => document.getElementById(id);
+
+  document.getElementById("title").textContent = quiz.title;
+  document.getElementById("subtitle").textContent = quiz.subtitle;
+
+  function render(){
+    const item = quiz.items[idx];
+    answered = false;
+    $("photo").src = item.image;
+    $("photo").alt = item.name;
+    $("progress").textContent = `Question ${idx+1} of ${quiz.items.length}`;
+    $("credit").textContent = item.credit ? "Image: " + item.credit : "";
+
+    const np = $("nameplate");
+    np.textContent = item.name;
+    np.classList.add("hidden");
+
+    const box = $("choices");
+    box.innerHTML = "";
+    item.choices.forEach((c,i)=>{
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.innerHTML = `<span class="letter">${LETTERS[i]}</span>${c}`;
+      b.onclick = ()=>pick(i,b);
+      box.appendChild(b);
+    });
+  }
+
+  // Reveal the correct answer. If the user picked, mark their wrong choice too.
+  function reveal(picked){
+    if(answered) return;
+    answered = true;
+    const item = quiz.items[idx];
+    document.querySelectorAll(".choice").forEach((b,bi)=>{
+      b.disabled = true;
+      if(bi === item.correct) b.classList.add("correct");
+      else if(bi === picked) b.classList.add("wrong");
+    });
+    $("nameplate").classList.remove("hidden");
+  }
+
+  function pick(i, btn){ reveal(i); }
+
+  // Going forward reveals the answer first; only advances once it's shown.
+  function next(){
+    if(!answered){ reveal(null); return; }
+    if(idx < quiz.items.length-1){ idx++; render(); }
+  }
+  function prev(){ if(idx > 0){ idx--; render(); } }
+
+  $("nextBtn").onclick = next;
+  $("prevBtn").onclick = prev;
+  document.addEventListener("keydown", e=>{
+    const k = e.key.toLowerCase();
+    if(["a","b","c","d"].includes(k)){
+      const i = "abcd".indexOf(k);
+      const btn = document.querySelectorAll(".choice")[i];
+      if(btn) pick(i, btn);
+      e.preventDefault(); return;
+    }
+    if(e.key==="ArrowRight" || e.key===" " || e.key==="Enter"){ next(); e.preventDefault(); }
+    if(e.key==="ArrowLeft"){ prev(); e.preventDefault(); }
+  });
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Childhood Memories of Singapore — Quiz Games</title>
+<style>
+  :root{ --navy:#1B325C; --cream:#FDF6E3; --red:#C0392B; --green:#27824A; --gold:#E5A12A; --dark:#222; }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:"Helvetica Neue",Arial,sans-serif; background:var(--navy);
+    color:var(--cream); min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px 40px;
+  }
+  header{text-align:center; max-width:760px;}
+  header h1{margin:0 0 6px; font-size:clamp(26px,5vw,40px); color:var(--gold);}
+  header p{margin:0; font-size:clamp(15px,2.6vw,20px); opacity:.85;}
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:20px; width:min(960px,100%); margin-top:30px;
+  }
+  .tile{
+    display:flex; flex-direction:column; background:var(--cream); color:var(--navy);
+    border-radius:20px; overflow:hidden; text-decoration:none;
+    box-shadow:0 10px 26px rgba(0,0,0,.35); transition:transform .08s ease;
+  }
+  .tile:hover{transform:translateY(-4px);}
+  .thumb{height:170px; background:#000; display:flex; align-items:center; justify-content:center;}
+  .thumb img{width:100%; height:100%; object-fit:cover;}
+  .tbody{padding:16px 18px 20px;}
+  .tbody h2{margin:0 0 4px; font-size:23px;}
+  .tbody p{margin:0; font-size:15px; color:#555;}
+  .count{
+    display:inline-block; margin-top:12px; font-size:14px; font-weight:700;
+    background:var(--gold); color:var(--navy); padding:5px 12px; border-radius:20px;
+  }
+  footer{margin-top:34px; font-size:13px; opacity:.6; text-align:center; max-width:680px;}
+</style>
+</head>
+<body>
+  <header>
+    <h1>🇸🇬 Childhood Memories of Singapore</h1>
+    <p>Look at the picture and guess what it is — a friendly reminiscence game for seniors.<br>1950s – 1980s</p>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    Tap a picture to play. Use A · B · C · D to answer, and the arrow keys or Space to move along.<br>
+    Images from Wikimedia Commons.
+  </footer>
+
+<script src="data.js"></script>
+<script>
+  const META = {
+    games:     { emoji:"🪀", blurb:"Chapteh, goli, gasing, five stones & more" },
+    hawkers:   { emoji:"🍢", blurb:"Ice-cream uncle, satay, kacang puteh & more" },
+    household: { emoji:"🏠", blurb:"Kerosene stove, tingkat, abacus & more" }
+  };
+  const grid = document.getElementById("grid");
+  ["games","hawkers","household"].forEach(key=>{
+    const q = window.QUIZZES[key]; if(!q) return;
+    const m = META[key] || {emoji:"❓", blurb:""};
+    const a = document.createElement("a");
+    a.className = "tile"; a.href = "quiz.html?quiz=" + key;
+    a.innerHTML = `
+      <div class="thumb"><img src="${q.items[0].image}" alt=""></div>
+      <div class="tbody">
+        <h2>${m.emoji} ${q.title.replace(/^Guess the /,'')}</h2>
+        <p>${m.blurb}</p>
+        <span class="count">${q.items.length} pictures ›</span>
+      </div>`;
+    grid.appendChild(a);
+  });
+</script>
+</body>
+</html>
