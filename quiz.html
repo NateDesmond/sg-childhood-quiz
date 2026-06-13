@@ -31,6 +31,17 @@
     display:flex; flex-direction:column; align-items:center;
     flex:1 1 auto; min-height:0; overflow:hidden;
   }
+  #question{
+    width:100%; flex:1 1 auto; min-height:0; display:flex; flex-direction:column; align-items:center;
+  }
+  #question.hidden{display:none;}
+  .endscreen{
+    flex:1 1 auto; width:100%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; gap:1.4vh;
+  }
+  .endscreen.hidden{display:none;}
+  .endbig{font-size:clamp(46px,10vh,90px); font-weight:800; color:var(--navy);}
+  .endsub{font-size:clamp(18px,3.2vh,26px); color:#555;}
   .imgwrap{
     width:100%; flex:1 1 auto; min-height:0; background:#000;
     border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center;
@@ -102,16 +113,23 @@
   </header>
 
   <div class="card">
-    <div class="imgwrap"><img id="photo" alt=""></div>
-    <div class="nameplate hidden" id="nameplate"></div>
-    <div class="choices" id="choices"></div>
-    <div class="credit" id="credit"></div>
+    <div id="question">
+      <div class="imgwrap"><img id="photo" alt=""></div>
+      <div class="nameplate hidden" id="nameplate"></div>
+      <div class="choices" id="choices"></div>
+      <div class="credit" id="credit"></div>
+    </div>
+    <div id="endscreen" class="endscreen hidden">
+      <div class="endbig">🎉 End</div>
+      <div class="endsub">Thank you for playing!</div>
+    </div>
   </div>
 
   <div class="nav">
     <a class="btn secondary" href="index.html">⌂ Menu</a>
     <button class="btn secondary" id="prevBtn">‹ Back</button>
     <button class="btn" id="nextBtn">Next ›</button>
+    <button class="btn" id="restartBtn">↺ Start Over</button>
   </div>
   <div class="hint">Tap a choice, or press A·B·C·D &nbsp;•&nbsp; ← → or Space to move</div>
 
@@ -129,6 +147,15 @@
   document.getElementById("subtitle").textContent = quiz.subtitle;
 
   function render(){
+    const atEnd = idx >= quiz.items.length;
+    $("question").classList.toggle("hidden", atEnd);
+    $("endscreen").classList.toggle("hidden", !atEnd);
+    $("nextBtn").style.display = atEnd ? "none" : "";
+    $("restartBtn").style.display = atEnd ? "" : "none";
+    if(atEnd){
+      $("progress").textContent = "";
+      return;
+    }
     const item = quiz.items[idx];
     answered = false;
     $("photo").src = item.image;
@@ -167,17 +194,21 @@
   function pick(i, btn){ reveal(i); }
 
   // Going forward reveals the answer first; only advances once it's shown.
+  // After the last question, advancing lands on the End screen.
   function next(){
+    if(idx >= quiz.items.length) return;        // already at End
     if(!answered){ reveal(null); return; }
-    if(idx < quiz.items.length-1){ idx++; render(); }
+    idx++; render();
   }
-  function prev(){ if(idx > 0){ idx--; render(); } }
+  function prev(){ if(idx > 0){ idx--; render(); } }  // from End, go back into the quiz
+  function restart(){ idx = 0; render(); }
 
   $("nextBtn").onclick = next;
   $("prevBtn").onclick = prev;
+  $("restartBtn").onclick = restart;
   document.addEventListener("keydown", e=>{
     const k = e.key.toLowerCase();
-    if(["a","b","c","d"].includes(k)){
+    if(["a","b","c","d"].includes(k) && idx < quiz.items.length){
       const i = "abcd".indexOf(k);
       const btn = document.querySelectorAll(".choice")[i];
       if(btn) pick(i, btn);
