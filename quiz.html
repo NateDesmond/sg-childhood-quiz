@@ -14,7 +14,7 @@
   body{
     margin:0; font-family:"Helvetica Neue",Arial,sans-serif;
     background:var(--navy); color:var(--dark);
-    height:100vh; overflow:hidden;
+    height:100vh; height:100dvh; overflow:hidden;
     display:flex; flex-direction:column; align-items:center;
     padding:1.2vh 10px; gap:1vh;
   }
@@ -86,8 +86,9 @@
     .hint{display:none;}
   }
   @media (max-width:430px){
-    .choices{grid-template-columns:1fr;}  /* single column on small phones */
+    /* keep 2x2 — a single column gets too tall and pushes the nav off-screen */
     header p{display:none;}
+    .choice{font-size:clamp(14px,2.3vh,18px); padding:1.1vh 6px;}
   }
   /* prevent iOS double-tap zoom flicker on buttons */
   .choice,.btn{touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
