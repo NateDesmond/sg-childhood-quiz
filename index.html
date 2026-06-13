@@ -53,12 +53,18 @@
 <script src="data.js"></script>
 <script>
   const META = {
-    games:     { emoji:"🪀", blurb:"Chapteh, goli, gasing, five stones & more" },
+    games:     { emoji:"🪀", blurb:"Chapteh, goli, gasing, congkak & more" },
     hawkers:   { emoji:"🍢", blurb:"Ice-cream uncle, satay, kacang puteh & more" },
-    household: { emoji:"🏠", blurb:"Kerosene stove, tingkat, abacus & more" }
+    household: { emoji:"🏠", blurb:"Kerosene stove, tingkat, abacus & more" },
+    kueh:      { emoji:"🍡", blurb:"Ang ku kueh, ondeh-ondeh, kueh lapis & more" },
+    places:    { emoji:"🏛️", blurb:"National Theatre, Great World, Change Alley & more" },
+    festive:   { emoji:"🎉", blurb:"Mooncake, ketupat, ang pow, rangoli & more" },
+    mamashop:  { emoji:"🍬", blurb:"White Rabbit, haw flakes, iced gems & more" },
+    toys:      { emoji:"🪁", blurb:"Kite, tin toys, pinwheel, masak-masak & more" },
+    kampong:   { emoji:"🛖", blurb:"Attap house, sampan, bullock cart & more" }
   };
   const grid = document.getElementById("grid");
-  ["games","hawkers","household"].forEach(key=>{
+  ["games","hawkers","household","kueh","places","festive","mamashop","toys","kampong"].forEach(key=>{
     const q = window.QUIZZES[key]; if(!q) return;
     const m = META[key] || {emoji:"❓", blurb:""};
     const a = document.createElement("a");
